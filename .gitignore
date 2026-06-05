@@ -1,0 +1,19 @@
+# Virtual environment
+*venv*
+
+# Environment variables (contains API keys)
+*.env*
+
+# Python caching and compiled files
+*__pycache__*
+*.pyc
+*.pyo
+*.pyd
+.ipynb_checkpoints/
+
+# macOS system files
+.DS_Store
+
+# SQLite Database
+rag_chat.db
+*.db
