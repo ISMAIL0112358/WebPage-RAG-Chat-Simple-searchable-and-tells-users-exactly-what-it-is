@@ -22,9 +22,12 @@ The project code is organized modularly to decouple backend and frontend concern
 ```
 WebPage-RAG-Chat-Simple-searchable-and-tells-users-exactly-what-it-is/
 ├── backend/
-│   ├── app.py             # FastAPI backend routing and API setup
+│   ├── app.py             # FastAPI backend app initialization and static file mounting
+│   ├── config.py          # App settings configuration using Pydantic BaseSettings
+│   ├── routes.py          # API endpoint router definitions and RAG query orchestration
+│   ├── schemas.py         # Request models using Pydantic BaseModel
 │   ├── db.py              # Database initialization and SQLite CRUD helpers
-│   ├── auth.py            # Google OAuth token verification and developer mode
+│   ├── auth.py            # Google OAuth token verification and centralized security dependency
 │   ├── rag.py             # LangChain document loaders & QA retrieval chains
 │   └── requirements.txt   # Backend Python dependency list (no Streamlit)
 ├── frontend/
@@ -39,6 +42,7 @@ WebPage-RAG-Chat-Simple-searchable-and-tells-users-exactly-what-it-is/
 ├── .env                   # Shared configuration & API keys
 ├── .gitignore             # Git ignore patterns (venv, .env, DB, caches)
 └── rag_chat.db            # SQLite database file (created automatically)
+
 ```
 
 ---
