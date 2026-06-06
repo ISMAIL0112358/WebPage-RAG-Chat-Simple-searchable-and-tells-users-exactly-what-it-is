@@ -33,3 +33,25 @@ def verify_google_token(token: str) -> Optional[dict]:
     except Exception as e:
         print(f"Token verification error: {e}")
     return None
+
+
+from fastapi import Depends, HTTPException, status
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+
+security = HTTPBearer()
+
+def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)) -> dict:
+    """
+    FastAPI dependency that extracts the Bearer token from the Authorization header
+    and verifies it. Returns the authenticated user_info dictionary.
+    """
+    token = credentials.credentials
+    user_info = verify_google_token(token)
+    if not user_info:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired authentication token",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    return user_info
+

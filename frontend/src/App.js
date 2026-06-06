@@ -46,20 +46,39 @@ function App() {
 
   // Initialize Google Identity Button when Client ID is loaded and user is not logged in
   useEffect(() => {
-    if (googleClientId && !token && window.google) {
-      try {
-        window.google.accounts.id.initialize({
-          client_id: googleClientId,
-          callback: handleGoogleCredentialResponse,
-        });
-        window.google.accounts.id.renderButton(
-          document.getElementById("googleBtnDiv"),
-          { theme: "outline", size: "large", width: "300" }
-        );
-      } catch (err) {
-        console.error("Google One Tap failed to initialize", err);
+    if (!googleClientId || token) return;
+
+    let interval;
+    const initializeGoogleBtn = () => {
+      if (window.google && window.google.accounts && window.google.accounts.id) {
+        try {
+          window.google.accounts.id.initialize({
+            client_id: googleClientId,
+            callback: handleGoogleCredentialResponse,
+          });
+          const btnDiv = document.getElementById("googleBtnDiv");
+          if (btnDiv) {
+            window.google.accounts.id.renderButton(
+              btnDiv,
+              { theme: "outline", size: "large", width: "300" }
+            );
+            if (interval) clearInterval(interval);
+          }
+        } catch (err) {
+          console.error("Google One Tap failed to initialize", err);
+        }
       }
-    }
+    };
+
+    // Try immediately
+    initializeGoogleBtn();
+
+    // Set up polling in case the script is still loading
+    interval = setInterval(initializeGoogleBtn, 100);
+
+    return () => {
+      if (interval) clearInterval(interval);
+    };
   }, [googleClientId, token]);
 
   // Scroll to bottom
@@ -74,8 +93,9 @@ function App() {
     try {
       const res = await fetch("/api/auth", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token: tokenStr })
+        headers: { 
+          "Authorization": `Bearer ${tokenStr}`
+        }
       });
       const data = await res.json();
       if (res.ok) {
@@ -135,8 +155,11 @@ function App() {
     try {
       const indexRes = await fetch("/api/index", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url, token: customToken })
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${customToken}`
+        },
+        body: JSON.stringify({ url })
       });
       
       if (indexRes.ok) {
@@ -145,8 +168,11 @@ function App() {
         
         const histRes = await fetch("/api/history", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ url, token: customToken })
+          headers: { 
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${customToken}`
+          },
+          body: JSON.stringify({ url })
         });
         const histData = await histRes.json();
         
@@ -175,8 +201,11 @@ function App() {
     try {
       const response = await fetch("/api/index", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url: urlToParse, token })
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({ url: urlToParse })
       });
       
       const data = await response.json();
@@ -189,8 +218,11 @@ function App() {
         
         const histRes = await fetch("/api/history", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ url: urlToParse, token })
+          headers: { 
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+          },
+          body: JSON.stringify({ url: urlToParse })
         });
         const histData = await histRes.json();
         
@@ -221,11 +253,13 @@ function App() {
     try {
       const response = await fetch("/api/chat", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
         body: JSON.stringify({
           message: msg,
-          url: activeUrl,
-          token: token
+          url: activeUrl
         })
       });
 
@@ -249,8 +283,11 @@ function App() {
     try {
       const res = await fetch("/api/clear", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url: activeUrl, token })
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({ url: activeUrl })
       });
       if (res.ok) {
         setChatHistory([]);

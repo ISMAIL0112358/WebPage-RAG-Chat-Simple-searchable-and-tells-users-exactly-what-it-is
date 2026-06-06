@@ -1,7 +1,9 @@
 import sqlite3
 import json
 
-DATABASE_FILE = "rag_chat.db"
+from backend.config import settings
+
+DATABASE_FILE = settings.DATABASE_FILE
 
 def init_db():
     """
@@ -89,3 +91,17 @@ def get_user_urls(user_id: str) -> list:
     rows = cursor.fetchall()
     conn.close()
     return [{"url": r[0], "updated_at": r[1]} for r in rows]
+
+def register_conversation(user_id: str, url: str):
+    """
+    Registers conversation entry in database if it doesn't already exist.
+    """
+    conn = sqlite3.connect(DATABASE_FILE)
+    cursor = conn.cursor()
+    cursor.execute("""
+    INSERT OR IGNORE INTO conversations (user_id, url, history, updated_at)
+    VALUES (?, ?, '[]', CURRENT_TIMESTAMP)
+    """, (user_id, url))
+    conn.commit()
+    conn.close()
+
